@@ -1,5 +1,8 @@
-from flask import Flask, render_template, flash, request, session
+from flask import Flask, flash, redirect, render_template, request, session, abort
+import os
+
 app = Flask(__name__)
+app.secret_key = os.urandom(12)
 
 @app.route('/')
 def home():
@@ -16,5 +19,6 @@ def do_admin_login():
         flash('wrong password!')
     return home()
 
-if __name__ == "__main__":
-	app.run(host='0.0.0.0', port=4000)
+# if __name__ == "__main__":
+# 	app.secret_key = os.urandom(12)
+# 	app.run(host='0.0.0.0', port=4000)
