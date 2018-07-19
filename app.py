@@ -1,4 +1,4 @@
-from flask import Flask, flash, redirect, render_template, request, session, abort
+from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 import os
 
 app = Flask(__name__)
@@ -17,8 +17,4 @@ def do_admin_login():
         session['logged_in'] = True
     else:
         flash('wrong password!')
-    return home()
-
-# if __name__ == "__main__":
-# 	app.secret_key = os.urandom(12)
-# 	app.run(host='0.0.0.0', port=4000)
+    return redirect(url_for('home'))
