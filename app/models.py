@@ -21,13 +21,12 @@ class User(UserMixin, db.Model):
 
 class Post(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	# body = db.Column(db.String(140))
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	bracket = db.Column(db.PickleType)
 
 	def __repr__(self):
-		return '<Post {}>'.format(self.retrieve_bracket())
+		return '<Post {}>'.format(self.get_bracket())
 
 	# User pickle dumps to save serialized dict into bracket column
 	def set_bracket(self, bracket_dict):

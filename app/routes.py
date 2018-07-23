@@ -4,6 +4,7 @@ from app.forms import LoginForm, RegistrationForm, BracketForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Post
 from werkzeug.urls import url_parse
+from sqlalchemy import desc
 
 @app.route('/')
 @app.route('/index')
@@ -27,7 +28,8 @@ def submit_bracket():
 @app.route('/profile')
 @login_required
 def profile():
-	return render_template('profile.html')
+	posts=Post.query.filter_by(user_id=current_user.id).order_by(desc('timestamp')).all()
+	return render_template('profile.html', posts=posts)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

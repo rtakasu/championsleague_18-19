@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hi </h1>
+    <h1>Hi {{ current_user.username }}</h1>
     <img src="/static/img/cr_messi_ney.jpg"  height="300" alt="">
+    <h2>Bracket Submissions:</h2>
     {% for post in posts %}
-    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
+    <div><p>{{ post.timestamp }}: <b>{{ post.get_bracket() }}</b></p></div>
     {% endfor %}
 {% endblock %}
