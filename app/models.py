@@ -2,6 +2,7 @@ from datetime import datetime
 from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+import pickle
 
 class User(UserMixin, db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -20,12 +21,22 @@ class User(UserMixin, db.Model):
 
 class Post(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	body = db.Column(db.String(140))
+	# body = db.Column(db.String(140))
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+	bracket = db.Column(db.PickleType)
 
 	def __repr__(self):
-		return '<Post {}>'.format(self.body)
+		return '<Post {}>'.format(self.retrieve_bracket())
+
+	# User pickle dumps to save serialized dict into bracket column
+	def set_bracket(self, bracket_dict):
+		self.bracket = pickle.dumps(bracket_dict)
+
+	# Unpickle and return bracket dict
+	def get_bracket(self):
+		return pickle.loads(self.bracket)
+
 
 @login.user_loader
 def load_user(id):

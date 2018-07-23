@@ -3,6 +3,10 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User
 
+class BracketForm(FlaskForm): 
+	winner = StringField('Winner', validators=[DataRequired()])
+	submit = SubmitField('Submit Bracket')
+
 class LoginForm(FlaskForm): 
 	username = StringField('Username', validators=[DataRequired()])
 	password = PasswordField('Password', validators=[DataRequired()])
