@@ -10,6 +10,6 @@
 
     <img src="/static/img/messi.jpg"  height="300" alt="">
     {% for post in posts %}
-    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
+    <div><p>{{ post.user_id }} says: <b>{{ post.get_bracket() }}</b></p></div>
     {% endfor %}
 {% endblock %}

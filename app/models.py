@@ -24,6 +24,8 @@ class Post(db.Model):
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	bracket = db.Column(db.PickleType)
+	points = db.Column(db.Integer)
+	valid = db.Column(db.Boolean, default=False) # Post is only valid if it's the latest submission for a user
 
 	def __repr__(self):
 		return '<Post {}>'.format(self.get_bracket())
@@ -36,6 +38,11 @@ class Post(db.Model):
 	def get_bracket(self):
 		return pickle.loads(self.bracket)
 
+	def make_valid(self):
+		posts = Post.query.filter(id!=self.id).all()
+		for post in posts:
+			post.valid = False
+		self.valid = True
 
 @login.user_loader
 def load_user(id):

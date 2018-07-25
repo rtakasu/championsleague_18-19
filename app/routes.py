@@ -9,15 +9,17 @@ from sqlalchemy import desc
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html')
+	posts=Post.query.order_by(desc('timestamp')).all()
+	return render_template('index.html', posts=posts)
 
 @app.route('/submit_bracket', methods=['GET', 'POST'])
 @login_required
 def submit_bracket():
 	form = BracketForm()
 	if form.validate_on_submit():
-		post = Post(user_id=current_user.id)
+		post = Post(user_id=current_user.id, points=0)
 		post.set_bracket({'winner': form.winner.data})
+		post.make_valid()
 		db.session.add(post)
 		db.session.commit()
 		flash('Congratulations you submitted a bracket')
