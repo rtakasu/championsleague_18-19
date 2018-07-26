@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, BracketForm
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models import User, Post
+from app.models import User, Post, Tournament
 from werkzeug.urls import url_parse
 from sqlalchemy import desc
 
@@ -16,10 +16,22 @@ def index():
 @login_required
 def submit_bracket():
 	form = BracketForm()
+	
+	# Retrieve CL tournament
+	tournaments = Tournament.query.all()
+	if len(tournaments) != 0:
+		cl = tournaments[0]
+	else: 
+		cl = Tournament()
+		db.session.add(cl)
+	cl.calculate_points()
+	db.session.commit()
+
 	if form.validate_on_submit():
 		post = Post(user_id=current_user.id, points=0)
 		post.set_bracket({'winner': form.winner.data})
 		post.make_valid()
+		cl.calculate_points_specific(post)
 		db.session.add(post)
 		db.session.commit()
 		flash('Congratulations you submitted a bracket')
@@ -32,6 +44,29 @@ def submit_bracket():
 def profile():
 	posts=Post.query.filter_by(user_id=current_user.id).order_by(desc('timestamp')).all()
 	return render_template('profile.html', posts=posts)
+
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin():
+	form = BracketForm()
+
+	# Retrieve CL tournament
+	tournaments = Tournament.query.all()
+	if len(tournaments) != 0:
+		cl = tournaments[0]
+	else: 
+		cl = Tournament()
+		db.session.add(cl)
+	cl.calculate_points()
+	db.session.commit()
+	
+	if form.validate_on_submit():
+		cl.set_games({'winner':form.winner.data})
+		db.session.commit()
+		app.logger.info('Updated Tournament')
+		return redirect(url_for('admin'))
+	posts = Post.query.order_by(desc('points')).all()
+	return render_template('admin.html', title='Admin', form=form, tournament=cl, posts=posts)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,3 +106,12 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/shutdown')
+def shutdown():
+	db.session.close()
+	func = request.environ.get('werkzeug.server.shutdown')
+	if func is None:
+		raise RuntimeError('Not running with the Werkzeug Server')
+	func()
+	return 'Server shutting down...'

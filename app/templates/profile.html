@@ -5,6 +5,6 @@
     <img src="/static/img/cr_messi_ney.jpg"  height="300" alt="">
     <h2>Bracket Submissions:</h2>
     {% for post in posts %}
-    <div><p>{{ post.timestamp }}: <b>{{ post.get_bracket() }}</b> <b>, valid: {{ post.valid }}</b></p></div>
+    <div><p>{{ post.timestamp }}: <b>{{ post.get_bracket() }}</b> <b>, valid: {{ post.valid }}</b> <b>, points: {{ post.points }}</b></p></div>
     {% endfor %}
 {% endblock %}

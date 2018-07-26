@@ -44,6 +44,31 @@ class Post(db.Model):
 			post.valid = False
 		self.valid = True
 
+class Tournament(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	games = db.Column(db.PickleType)
+
+	def __init__(self):
+		self.games = pickle.dumps({'winner':None})
+
+	def set_games(self, games_dict):
+		self.games = pickle.dumps(games_dict)
+
+	def get_games(self):
+		return pickle.loads(self.games)
+
+	def calculate_points(self):
+		posts = Post.query.all()
+		for post in posts:
+			post.points = self.calculate_points_specific(post)
+
+	def calculate_points_specific(self, post):
+		if post.get_bracket()['winner'] == self.get_games()['winner']:
+			return 3
+		else:
+			return 0 
+
+	
 @login.user_loader
 def load_user(id):
 	return User.query.get(int(id))
