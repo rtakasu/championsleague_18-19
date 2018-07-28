@@ -14,6 +14,13 @@ class GroupStageForm(FlaskForm):
 	games = FieldList(FormField(GameEntryForm), min_entries=96)
 	submit = SubmitField('Submit Group Stage')
 
+class AdminTeamEntryForm(FlaskForm):
+	team = StringField('Team Name', validators=[DataRequired()])
+
+class AdminTeamForm(FlaskForm):
+	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=32)
+	submit = SubmitField('Submit Group Stage')
+
 class LoginForm(FlaskForm): 
 	username = StringField('Username', validators=[DataRequired()])
 	password = PasswordField('Password', validators=[DataRequired()])

@@ -8,14 +8,18 @@
         <a href="{{ url_for('admin_submit_teams') }}">Submit Teams</a>
         
     </div>
-    <h1>Submit Games</h1>
+    <h1>Submit Teams</h1>
+    Current Teams: {{tournament.get_R16_teams()}}
+
+
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        <b>Group Stage Games: {{tournament.get_group_stage()}}</b>
-        <p>
-            {{ form.winner.label }}<br>
-            {{ form.winner(size=32) }}
-        </p>
+
+        {% for label_and_form_item in labels_and_form_items %}
+
+            {{label_and_form_item[0]}} : {{label_and_form_item[1]}}
+            
+        {% endfor%}
         <p>{{ form.submit() }}</p>
     </form>
 {% endblock %}

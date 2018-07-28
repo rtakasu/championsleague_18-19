@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm
+from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm, AdminTeamForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Post, Tournament
 from werkzeug.urls import url_parse
@@ -42,7 +42,6 @@ def submit_bracket():
 @app.route('/submit_group_stage', methods=['GET', 'POST'])
 @login_required
 def submit_group_stage():
-	
 	group_games_labels = Tournament.helper_group_stage()
 	form = GroupStageForm()
 	
@@ -104,6 +103,36 @@ def admin():
 		return redirect(url_for('admin'))
 	posts = Post.query.order_by(desc('points')).all()
 	return render_template('admin.html', title='Admin', form=form, tournament=cl, posts=posts)
+
+@app.route('/admin_submit_teams', methods=['GET', 'POST'])
+@login_required
+def admin_submit_teams():
+	group_team_labels = Tournament.helper_teams()
+	form = AdminTeamForm()
+
+	labels_and_form_items = zip(group_team_labels, form.teams)
+
+	# Retrieve CL tournament
+	tournaments = Tournament.query.all()
+	if len(tournaments) != 0:
+		cl = tournaments[0]
+	else: 
+		cl = Tournament()
+		db.session.add(cl)
+	cl.calculate_points()
+	db.session.commit()
+	
+	if form.validate_on_submit():
+		teams_dict = {}
+		for team_assignment in labels_and_form_items:
+			teams_dict[team_assignment[0]] = team_assignment[1].data["team"]
+		cl.set_R16_teams(teams_dict)
+		print(teams_dict)
+		db.session.commit()
+		app.logger.info('Updated Tournament')
+		return redirect(url_for('admin_submit_teams'))
+	posts = Post.query.order_by(desc('points')).all()
+	return render_template('admin_submit_teams.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

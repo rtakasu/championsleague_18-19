@@ -97,6 +97,13 @@ class Tournament(db.Model):
 	def calculate_points_specific(self, post):
 		return 1
 
+	def get_R16_teams(self):
+		if self.R16_teams:
+			return pickle.loads(self.R16_teams)
+		return None
+
+	def set_R16_teams(self, teams):
+		self.R16_teams = pickle.dumps(teams)
 
 	def helper_group_stage():
 		games_dict = {}
@@ -108,6 +115,14 @@ class Tournament(db.Model):
 						key = group_letter + str(home_team) + "H" + "vs" + group_letter + str(away_team) + "A"
 						games_dict[key] = None
 		return games_dict
+
+	def helper_teams():
+		teams_list = []
+		groups = ("A", "B", "C", "D", "E", "F", "G", "H")
+		for group_letter in groups:
+			for i in range(1,5):
+				teams_list.append(group_letter + str(i))
+		return teams_list
 					
 
 					
