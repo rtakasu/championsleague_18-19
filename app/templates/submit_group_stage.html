@@ -8,7 +8,7 @@
 
         {% for label_and_form_item in labels_and_form_items %}
 
-        	{{label_and_form_item[0]}} : {{label_and_form_item[1]}}
+        	{{games_info[label_and_form_item[0]]["home_team"]}} (Home) vs {{games_info[label_and_form_item[0]]["away_team"]}} (Away): {{label_and_form_item[1]}}
         	
         {% endfor%}
 

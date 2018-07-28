@@ -8,14 +8,19 @@
         <a href="{{ url_for('admin_submit_teams') }}">Submit Teams</a>
         
     </div>
-    <h1>Submit Games</h1>
+    <h1>Submit Scores</h1>
+    
+    Current Games: {{tournament.get_R16_games()}}
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        <b>Group Stage Games: {{tournament.get_group_stage()}}</b>
-        <p>
-            {{ form.winner.label }}<br>
-            {{ form.winner(size=32) }}
-        </p>
-        <p>{{ form.submit() }}</p>
+        
+        {% for label_and_form_item in labels_and_form_items %}
+
+            {{games_info[label_and_form_item[0]]["home_team"]}} (Home) vs {{games_info[label_and_form_item[0]]["away_team"]}} (Away): {{label_and_form_item[1]}}
+            
+        {% endfor%}
+
+        
+        <p>{{ form.submit() }}</p> 
     </form>
 {% endblock %}

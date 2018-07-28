@@ -105,6 +105,14 @@ class Tournament(db.Model):
 	def set_R16_teams(self, teams):
 		self.R16_teams = pickle.dumps(teams)
 
+	def get_R16_games(self):
+		if self.R16_games:
+			return pickle.loads(self.R16_games)
+		return None
+
+	def set_R16_games(self, games):
+		self.R16_games = pickle.dumps(games)
+
 	def helper_group_stage():
 		games_dict = {}
 		groups = ("A", "B", "C", "D", "E", "F", "G", "H")

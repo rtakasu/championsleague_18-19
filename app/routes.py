@@ -57,6 +57,13 @@ def submit_group_stage():
 	cl.calculate_points()
 	db.session.commit()
 
+	games_info = {}
+	teams_dict = cl.get_R16_teams()
+	for game_label in group_games_labels:
+		home_team_label = game_label[0:2]
+		away_team_label = game_label[5:7]
+		games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
+
 	if form.validate_on_submit():
 		post = Post(user_id=current_user.id, points=0)
 		games_guess_dict = {}
@@ -72,7 +79,7 @@ def submit_group_stage():
 		app.logger.info('Congratulations you submitted a bracket')
 		return redirect(url_for('submit_group_stage'))
 	
-	return render_template('submit_group_stage.html', title='Submit Group Stage', form=form, labels_and_form_items=labels_and_form_items)
+	return render_template('submit_group_stage.html', title='Submit Group Stage', form=form, labels_and_form_items=labels_and_form_items, games_info=games_info)
 
 
 @app.route('/profile')
@@ -84,7 +91,10 @@ def profile():
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
-	form = BracketForm()
+	group_games_labels = Tournament.helper_group_stage()
+	form = GroupStageForm()
+
+	labels_and_form_items = zip(group_games_labels, form.games)
 
 	# Retrieve CL tournament
 	tournaments = Tournament.query.all()
@@ -95,14 +105,25 @@ def admin():
 		db.session.add(cl)
 	cl.calculate_points()
 	db.session.commit()
+
+	games_info = {}
+	teams_dict = cl.get_R16_teams()
+	for game_label in group_games_labels:
+		home_team_label = game_label[0:2]
+		away_team_label = game_label[5:7]
+		games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
 	
 	if form.validate_on_submit():
-		cl.set_games({'winner':form.winner.data})
+		games_dict = {}
+		for game in labels_and_form_items:
+			games_dict[game[0]] = game[1].data["game_result"]
+		print(games_dict)
+		cl.set_R16_games(games_dict)
 		db.session.commit()
 		app.logger.info('Updated Tournament')
 		return redirect(url_for('admin'))
 	posts = Post.query.order_by(desc('points')).all()
-	return render_template('admin.html', title='Admin', form=form, tournament=cl, posts=posts)
+	return render_template('admin.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items, games_info=games_info)
 
 @app.route('/admin_submit_teams', methods=['GET', 'POST'])
 @login_required
