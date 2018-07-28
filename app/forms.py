@@ -1,11 +1,18 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, FieldList, FormField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from app.models import User
+from app.models import User, Tournament
 
 class BracketForm(FlaskForm): 
 	winner = StringField('Winner', validators=[DataRequired()])
 	submit = SubmitField('Submit Bracket')
+
+class GameEntryForm(FlaskForm):
+	game_result = StringField('Result', validators=[DataRequired()])
+
+class GroupStageForm(FlaskForm):
+	games = FieldList(FormField(GameEntryForm), min_entries=96)
+	submit = SubmitField('Submit Group Stage')
 
 class LoginForm(FlaskForm): 
 	username = StringField('Username', validators=[DataRequired()])

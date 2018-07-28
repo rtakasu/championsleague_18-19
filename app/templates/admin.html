@@ -4,7 +4,7 @@
     <h1>Submit Games</h1>
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
-        <b>Current winner: {{tournament.get_games()}}</b>
+        <b>Group Stage Games: {{tournament.get_group_stage()}}</b>
         <p>
             {{ form.winner.label }}<br>
             {{ form.winner(size=32) }}

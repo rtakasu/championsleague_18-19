@@ -10,6 +10,6 @@
 
     <img src="/static/img/messi.jpg"  height="300" alt="">
     {% for post in posts %}
-    <div><p>{{ post.user_id }} says: <b>{{ post.get_bracket() }}</b></p></div>
+    <div><p>{{ post.user_id }} says: <b>{{ post.get_group_guess() }}</b></p></div>
     {% endfor %}
 {% endblock %}
