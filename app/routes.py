@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm, AdminTeamForm
+from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm, AdminTeamForm, AdminGroupStageForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Post, Tournament
 from werkzeug.urls import url_parse
@@ -72,6 +72,11 @@ def submit_group_stage():
 		games_guess_dict = {}
 		for game_guess in labels_and_form_items:
 			games_guess_dict[game_guess[0]] = str(game_guess[1].data["home_result"]) + "vs" + str(game_guess[1].data["away_result"])
+			games_guess_dict[game_guess[0]] = {
+					"result": str(game_guess[1].data["home_result"]) + "vs" + str(game_guess[1].data["away_result"]),
+					"points": 0
+					}
+
 		print(games_guess_dict)
 		post.set_group_guess(games_guess_dict)
 		post.make_valid()
@@ -95,7 +100,7 @@ def profile():
 @login_required
 def admin():
 	group_games_labels = Tournament.helper_group_stage()
-	form = GroupStageForm()
+	form = AdminGroupStageForm()
 
 	labels_and_form_items = zip(group_games_labels, form.games)
 
@@ -120,7 +125,10 @@ def admin():
 	if form.validate_on_submit():
 		games_dict = {}
 		for game in labels_and_form_items:
-			games_dict[game[0]] = str(game[1].data["home_result"]) + "vs" + str(game[1].data["away_result"])
+			games_dict[game[0]] = {
+					"result": str(game[1].data["home_result"]) + "vs" + str(game[1].data["away_result"]),
+					"played": (game[1].data["home_result"] != None and game[1].data["home_result"] != None)
+					}
 		print(games_dict)
 		cl.set_group_games(games_dict)
 		db.session.commit()

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, IntegerField, SubmitField, FieldList, FormField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired, Optional
 from app.models import User, Tournament
 
 class BracketForm(FlaskForm): 
@@ -13,6 +13,14 @@ class GameEntryForm(FlaskForm):
 
 class GroupStageForm(FlaskForm):
 	games = FieldList(FormField(GameEntryForm), min_entries=96)
+	submit = SubmitField('Submit Group Stage')
+
+class AdminGameEntryForm(FlaskForm):
+	home_result = IntegerField('Home', validators=[Optional()])
+	away_result = IntegerField('Away', validators=[Optional()])
+
+class AdminGroupStageForm(FlaskForm):
+	games = FieldList(FormField(AdminGameEntryForm), min_entries=96)
 	submit = SubmitField('Submit Group Stage')
 
 class AdminTeamEntryForm(FlaskForm):

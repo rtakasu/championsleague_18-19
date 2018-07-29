@@ -55,6 +55,30 @@ class Post(db.Model):
 			return pickle.loads(self.group_stage_guess)
 		return None
 
+	def set_game_points(self, game_stage, game, points):
+		if game_stage == "group":
+			current_guess = self.get_group_guess()
+			current_guess[game]["points"] = points
+			self.set_group_guess(current_guess)
+		elif game_stage == "R16":
+			current_guess = self.get_R16_guess()
+			current_guess[game]["points"] = points
+			self.set_R16_guess(current_guess)
+		elif game_stage == "QF":
+			current_guess = self.get_QF_guess()
+			current_guess[game]["points"] = points
+			self.set_QF_guess(current_guess)
+		elif game_stage == "SF":
+			current_guess = self.get_SF_guess()
+			current_guess[game]["points"] = points
+			self.set_SF_guess(current_guess)
+		elif game_stage == "F":
+			current_guess = self.get_F_guess()
+			current_guess[game]["points"] = points
+			self.set_F_guess(current_guess)
+		else:
+			return None
+		
 	def make_valid(self):
 		posts = Post.query.filter(id!=self.id).all()
 		for post in posts:
@@ -79,7 +103,7 @@ class Tournament(db.Model):
 	F_teams = db.Column(db.PickleType)
 
 	def __init__(self):
-		self.group_stage_games = pickle.dumps(helper_group_stage())
+		self.group_stage_games = pickle.dumps(Tournament.helper_group_stage())
 
 	def set_group_games(self, group_stage_games):
 		self.group_stage_games = pickle.dumps(group_stage_games)
@@ -128,18 +152,24 @@ class Tournament(db.Model):
 
 		if game_results and guess_results:
 			for game_label in game_results:
-				# if exact score => 3 points
 				
-				if game_results[game_label] == guess_results[game_label]:
-					points += 3
-					continue
+				if game_results[game_label]["played"]:
+					# if exact score => 3 points
+					
+					if game_results[game_label]["result"] == guess_results[game_label]["result"]:
+						points += 3
+						# guess_results[game_label]["points"] = 3
+						post.set_game_points("group", game_label, 3)
+						continue
 
-				# if correct result but wrong score => 1 point
-				game_winner = Tournament.helper_winner(game_results[game_label])
-				guess_winner = Tournament.helper_winner(guess_results[game_label])
+					# if correct result but wrong score => 1 point
+					game_winner = Tournament.helper_winner(game_results[game_label]["result"])
+					guess_winner = Tournament.helper_winner(guess_results[game_label]["result"])
 
-				if game_winner == guess_winner:
-					points += 1
+					if game_winner == guess_winner:
+						# guess_results[game_label]["points"] = 1
+						post.set_game_points("group", game_label, 1)
+						points += 1
 
 		post.points = points
 
