@@ -10,13 +10,21 @@
     </div>
     <h1>Submit Scores</h1>
     
-    Current Games: {{tournament.get_R16_games()}}
+    Current Scores: {{tournament.get_group_games()}}
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
         
         {% for label_and_form_item in labels_and_form_items %}
 
+            {% if games_info != {} %}
+
             {{games_info[label_and_form_item[0]]["home_team"]}} (Home) vs {{games_info[label_and_form_item[0]]["away_team"]}} (Away): {{label_and_form_item[1]}}
+
+            {% else %}
+            
+            {{label_and_form_item[0]}} : {{label_and_form_item[1]}}
+
+            {% endif %}
             
         {% endfor%}
 

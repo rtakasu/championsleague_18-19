@@ -81,21 +81,21 @@ class Tournament(db.Model):
 	def __init__(self):
 		self.group_stage_games = pickle.dumps(helper_group_stage())
 
-	def set_group_stage(self, group_stage_games):
+	def set_group_games(self, group_stage_games):
 		self.group_stage_games = pickle.dumps(group_stage_games)
 
-	def get_group_stage(self):
+	def get_group_games(self):
 		if self.group_stage_games:
 			return pickle.loads(self.group_stage_games)
 		return None
 
-	def calculate_points(self):
-		posts = Post.query.all()
-		for post in posts:
-			post.points = self.calculate_points_specific(post)
+	def set_group_teams(self, group_stage_teams):
+		self.group_stage_teams = pickle.dumps(group_stage_teams)
 
-	def calculate_points_specific(self, post):
-		return 1
+	def get_group_teams(self):
+		if self.group_stage_teams:
+			return pickle.loads(self.group_stage_teams)
+		return None
 
 	def get_R16_teams(self):
 		if self.R16_teams:
@@ -112,6 +112,36 @@ class Tournament(db.Model):
 
 	def set_R16_games(self, games):
 		self.R16_games = pickle.dumps(games)
+
+	def calculate_points(self):
+		posts = Post.query.all()
+		for post in posts:
+			self.calculate_points_specific(post)
+
+	def calculate_points_specific(self, post):
+		# Takes in post instance and calculates (and saves) its points 
+		# based on the game results saved in the tournament object
+		# for result in post.get_group_stage():
+		game_results = self.get_group_games()
+		guess_results = post.get_group_guess()
+		points = 0
+
+		if game_results and guess_results:
+			for game_label in game_results:
+				# if exact score => 3 points
+				
+				if game_results[game_label] == guess_results[game_label]:
+					points += 3
+					continue
+
+				# if correct result but wrong score => 1 point
+				game_winner = Tournament.helper_winner(game_results[game_label])
+				guess_winner = Tournament.helper_winner(guess_results[game_label])
+
+				if game_winner == guess_winner:
+					points += 1
+
+		post.points = points
 
 	def helper_group_stage():
 		games_dict = {}
@@ -131,10 +161,21 @@ class Tournament(db.Model):
 			for i in range(1,5):
 				teams_list.append(group_letter + str(i))
 		return teams_list
-					
 
-					
-
+	def helper_winner(score):
+		# Returns whether home (won), away (won) or draw based on the input score string
+		# Ex: 
+		# 3vs1 -> home
+		# 0vs2 -> away
+		# 2vs2 -> draw
+		home_score = score[0:1]
+		away_score = score[3:4]
+		if home_score > away_score:
+			return "home"
+		elif home_score < away_score:
+			return "away"
+		else:
+			return "draw"
 
 	
 @login.user_loader

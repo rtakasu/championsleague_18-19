@@ -8,8 +8,18 @@
 
         {% for label_and_form_item in labels_and_form_items %}
 
-        	{{games_info[label_and_form_item[0]]["home_team"]}} (Home) vs {{games_info[label_and_form_item[0]]["away_team"]}} (Away): {{label_and_form_item[1]}}
-        	
+        	{% if games_info != {} %}
+
+            {{games_info[label_and_form_item[0]]["home_team"]}} (Home) vs {{games_info[label_and_form_item[0]]["away_team"]}} (Away): {{label_and_form_item[1]}}
+
+            {% else %}
+            
+            {{label_and_form_item[0]}} : {{label_and_form_item[1]}}
+
+            {% endif %}
+
+     
+
         {% endfor%}
 
         

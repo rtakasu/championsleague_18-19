@@ -1,37 +1,38 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, FieldList, FormField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms import StringField, PasswordField, BooleanField, IntegerField, SubmitField, FieldList, FormField
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, InputRequired
 from app.models import User, Tournament
 
 class BracketForm(FlaskForm): 
-	winner = StringField('Winner', validators=[DataRequired()])
+	winner = StringField('Winner', validators=[InputRequired()])
 	submit = SubmitField('Submit Bracket')
 
 class GameEntryForm(FlaskForm):
-	game_result = StringField('Result', validators=[DataRequired()])
+	home_result = IntegerField('Home', validators=[InputRequired()])
+	away_result = IntegerField('Away', validators=[InputRequired()])
 
 class GroupStageForm(FlaskForm):
 	games = FieldList(FormField(GameEntryForm), min_entries=96)
 	submit = SubmitField('Submit Group Stage')
 
 class AdminTeamEntryForm(FlaskForm):
-	team = StringField('Team Name', validators=[DataRequired()])
+	team = StringField('Team Name', validators=[InputRequired()])
 
 class AdminTeamForm(FlaskForm):
 	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=32)
 	submit = SubmitField('Submit Group Stage')
 
 class LoginForm(FlaskForm): 
-	username = StringField('Username', validators=[DataRequired()])
-	password = PasswordField('Password', validators=[DataRequired()])
+	username = StringField('Username', validators=[InputRequired()])
+	password = PasswordField('Password', validators=[InputRequired()])
 	remember_me = BooleanField('Remember Me')
 	submit = SubmitField('Sign In')
 
 class RegistrationForm(FlaskForm):
-	username = StringField('Username', validators=[DataRequired()])
-	email = StringField('Email', validators=[DataRequired(), Email()])
-	password = PasswordField('Password', validators=[DataRequired()])
-	password2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
+	username = StringField('Username', validators=[InputRequired()])
+	email = StringField('Email', validators=[InputRequired(), Email()])
+	password = PasswordField('Password', validators=[InputRequired()])
+	password2 = PasswordField('Repeat Password', validators=[InputRequired(), EqualTo('password')])
 	submit = SubmitField('Register')
 
 	def validate_username(self, username):

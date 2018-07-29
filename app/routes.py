@@ -57,18 +57,21 @@ def submit_group_stage():
 	cl.calculate_points()
 	db.session.commit()
 
+
 	games_info = {}
-	teams_dict = cl.get_R16_teams()
-	for game_label in group_games_labels:
-		home_team_label = game_label[0:2]
-		away_team_label = game_label[5:7]
-		games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
+	teams_dict = cl.get_group_teams()
+	if teams_dict:	
+		for game_label in group_games_labels:
+			home_team_label = game_label[0:2]
+			away_team_label = game_label[5:7]
+			games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
+
 
 	if form.validate_on_submit():
 		post = Post(user_id=current_user.id, points=0)
 		games_guess_dict = {}
 		for game_guess in labels_and_form_items:
-			games_guess_dict[game_guess[0]] = game_guess[1].data["game_result"]
+			games_guess_dict[game_guess[0]] = str(game_guess[1].data["home_result"]) + "vs" + str(game_guess[1].data["away_result"])
 		print(games_guess_dict)
 		post.set_group_guess(games_guess_dict)
 		post.make_valid()
@@ -107,21 +110,24 @@ def admin():
 	db.session.commit()
 
 	games_info = {}
-	teams_dict = cl.get_R16_teams()
-	for game_label in group_games_labels:
-		home_team_label = game_label[0:2]
-		away_team_label = game_label[5:7]
-		games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
+	teams_dict = cl.get_group_teams()
+	if teams_dict:	
+		for game_label in group_games_labels:
+			home_team_label = game_label[0:2]
+			away_team_label = game_label[5:7]
+			games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
 	
 	if form.validate_on_submit():
 		games_dict = {}
 		for game in labels_and_form_items:
-			games_dict[game[0]] = game[1].data["game_result"]
+			games_dict[game[0]] = str(game[1].data["home_result"]) + "vs" + str(game[1].data["away_result"])
 		print(games_dict)
-		cl.set_R16_games(games_dict)
+		cl.set_group_games(games_dict)
 		db.session.commit()
 		app.logger.info('Updated Tournament')
 		return redirect(url_for('admin'))
+	else:
+		print("form not valid")
 	posts = Post.query.order_by(desc('points')).all()
 	return render_template('admin.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items, games_info=games_info)
 
@@ -147,7 +153,7 @@ def admin_submit_teams():
 		teams_dict = {}
 		for team_assignment in labels_and_form_items:
 			teams_dict[team_assignment[0]] = team_assignment[1].data["team"]
-		cl.set_R16_teams(teams_dict)
+		cl.set_group_teams(teams_dict)
 		print(teams_dict)
 		db.session.commit()
 		app.logger.info('Updated Tournament')
