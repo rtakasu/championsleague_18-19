@@ -1,6 +1,8 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm, AdminTeamForm, AdminGroupStageForm
+from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm
+from app.forms import GroupTeamForm, R16TeamForm, QFTeamForm, SFTeamForm, FTeamForm 
+from app.forms import AdminGroupStageForm, AdminR16StageForm, AdminQFStageForm, AdminSFStageForm, AdminFStageForm
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models import User, Post, Tournament
 from werkzeug.urls import url_parse
@@ -59,7 +61,7 @@ def submit_group_stage():
 
 
 	games_info = {}
-	teams_dict = cl.get_group_teams() #*** To Update
+	teams_dict = cl.get_teams(game_stage) #*** To Update
 	if teams_dict:	
 		for game_label in group_games_labels:
 			home_team_label = game_label[0:2]
@@ -99,13 +101,20 @@ def profile():
 @app.route('/admin_submit_scores/<string:game_stage>', methods=['GET', 'POST'])
 @login_required
 def admin_submit_scores(game_stage):
-	group_games_labels = Tournament.helper_group_stage()
-	
+	game_labels = Tournament.helper_game_labels(game_stage)
 
+	if game_stage == "group":
+		form = AdminGroupStageForm()
+	elif game_stage == "R16":
+		form = AdminR16StageForm()
+	elif game_stage == "QF":
+		form = AdminQFStageForm()
+	elif game_stage == "SF":
+		form = AdminSFStageForm()
+	elif game_stage == "F":
+		form = AdminFStageForm()
 
-	form = AdminGroupStageForm()
-
-	labels_and_form_items = zip(group_games_labels, form.games)
+	labels_and_form_items = zip(game_labels, form.games)
 
 	# Retrieve CL tournament
 	tournaments = Tournament.query.all()
@@ -121,10 +130,9 @@ def admin_submit_scores(game_stage):
 	teams_dict = cl.get_teams(game_stage)
 
 	if teams_dict:	
-		for game_label in group_games_labels:
-			home_team_label = game_label[0:2]
-			away_team_label = game_label[5:7]
-			games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
+		for game_label in game_labels:
+			temp = Tournament.helper_parse_game_label(game_label)
+			games_info[game_label] = {"home_team": teams_dict[temp["home_team"]], "away_team": teams_dict[temp["away_team"]]}
 	
 	if form.validate_on_submit():
 		games_dict = {}
@@ -134,14 +142,14 @@ def admin_submit_scores(game_stage):
 					"played": (game[1].data["home_result"] != None and game[1].data["home_result"] != None)
 					}
 		print(games_dict)
-		cl.set_group_games(games_dict)
+		cl.set_games(game_stage, games_dict)
 		db.session.commit()
 		app.logger.info('Updated Tournament')
-		return redirect(url_for('admin'))
+		return redirect(url_for('admin_submit_scores', game_stage=game_stage))
 	else:
 		print("form not valid")
 	posts = Post.query.order_by(desc('points')).all()
-	return render_template('admin.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items, games_info=games_info)
+	return render_template('admin_submit_scores.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items, games_info=games_info, game_stage=game_stage)
 
 
 @app.route('/admin_submit_teams/<string:game_stage>', methods=['GET', 'POST'])
@@ -152,7 +160,16 @@ def admin_submit_teams(game_stage):
 	for group in groups:
 		team_labels_list += groups[group]
 
-	form = AdminTeamForm()
+	if game_stage == "group":
+		form = GroupTeamForm()
+	elif game_stage == "R16":
+		form = R16TeamForm()
+	elif game_stage == "QF":
+		form = QFTeamForm()
+	elif game_stage == "SF":
+		form = SFTeamForm()
+	elif game_stage == "F":
+		form = FTeamForm()
 
 	labels_and_form_items = zip(team_labels_list, form.teams)
 

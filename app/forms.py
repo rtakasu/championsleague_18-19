@@ -21,14 +21,47 @@ class AdminGameEntryForm(FlaskForm):
 
 class AdminGroupStageForm(FlaskForm):
 	games = FieldList(FormField(AdminGameEntryForm), min_entries=96)
-	submit = SubmitField('Submit Group Stage')
+	submit = SubmitField('Submit Group Stage Scores')
+
+class AdminR16StageForm(FlaskForm):
+	games = FieldList(FormField(AdminGameEntryForm), min_entries=16)
+	submit = SubmitField('Submit R16 Scores')
+
+class AdminQFStageForm(FlaskForm):
+	games = FieldList(FormField(AdminGameEntryForm), min_entries=8)
+	submit = SubmitField('Submit QF Scores')
+
+class AdminSFStageForm(FlaskForm):
+	games = FieldList(FormField(AdminGameEntryForm), min_entries=4)
+	submit = SubmitField('Submit SF Scores')
+
+class AdminFStageForm(FlaskForm):
+	games = FieldList(FormField(AdminGameEntryForm), min_entries=1)
+	submit = SubmitField('Submit F Scores')
 
 class AdminTeamEntryForm(FlaskForm):
 	team = StringField('Team Name', validators=[InputRequired()])
 
-class AdminTeamForm(FlaskForm):
+# *** To Improve:
+class GroupTeamForm(FlaskForm):
 	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=32)
-	submit = SubmitField('Submit Group Stage')
+	submit = SubmitField('Submit Group Teams')
+
+class R16TeamForm(FlaskForm):
+	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=16)
+	submit = SubmitField('Submit R16 Teams')
+
+class QFTeamForm(FlaskForm):
+	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=8)
+	submit = SubmitField('Submit QF Teams')
+
+class SFTeamForm(FlaskForm):
+	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=4)
+	submit = SubmitField('Submit SF Teams')
+
+class FTeamForm(FlaskForm):
+	teams = FieldList(FormField(AdminTeamEntryForm), min_entries=2)
+	submit = SubmitField('Submit F Teams')
 
 class LoginForm(FlaskForm): 
 	username = StringField('Username', validators=[InputRequired()])

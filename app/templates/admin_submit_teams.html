@@ -7,8 +7,16 @@
         <a href="{{ url_for('admin_submit_scores', game_stage='group') }}">Submit Scores</a>
         <a href="{{ url_for('admin_submit_teams', game_stage='group') }}">Submit Teams</a>
     </div>
+    <div>
+        Stage:
+        <a href="{{ url_for('admin_submit_teams', game_stage='group') }}">Group</a>
+        <a href="{{ url_for('admin_submit_teams', game_stage='R16') }}">R16 </a>
+        <a href="{{ url_for('admin_submit_teams', game_stage='QF') }}">QF </a>
+        <a href="{{ url_for('admin_submit_teams', game_stage='SF') }}">SF </a>
+        <a href="{{ url_for('admin_submit_teams', game_stage='F') }}">F </a>
+    </div>
     <h1>Submit Teams</h1>
-    Current Teams: {{tournament.get_group_teams()}}
+    Current Teams: {{tournament.get_teams("group")}}
 
 
     <form action="" method="post" novalidate>

@@ -90,7 +90,6 @@ class Tournament(db.Model):
 
 	# X_games contains a dict with the info about each real-world game
 	# X_teams contains a dict with the teams in that round and their corresponding key
-	games = db.Column(db.PickleType)
 	group_stage_games = db.Column(db.PickleType)
 	group_stage_teams = db.Column(db.PickleType)
 	R16_games = db.Column(db.PickleType)
@@ -101,9 +100,6 @@ class Tournament(db.Model):
 	SF_teams = db.Column(db.PickleType)
 	F_game = db.Column(db.PickleType)
 	F_teams = db.Column(db.PickleType)
-
-	def __init__(self):
-		self.group_stage_games = pickle.dumps(Tournament.helper_group_stage())
 
 	def set_teams(self, game_stage, teams):
 		if game_stage == "group":
@@ -116,6 +112,18 @@ class Tournament(db.Model):
 			self.SF_teams = pickle.dumps(teams)
 		elif game_stage == "F":
 			self.F_teams = pickle.dumps(teams)
+
+	def set_games(self, game_stage, games):
+		if game_stage == "group":
+			self.group_stage_games = pickle.dumps(games)
+		elif game_stage == "R16":
+			self.R16_games = pickle.dumps(games)
+		elif game_stage == "QF":	
+			self.QF_games = pickle.dumps(games)
+		elif game_stage == "SF":
+			self.SF_games = pickle.dumps(games)
+		elif game_stage == "F":
+			self.F_game = pickle.dumps(games)
 
 	def get_teams(self, game_stage):
 		if game_stage == "group" and self.group_stage_teams:
@@ -130,39 +138,18 @@ class Tournament(db.Model):
 			return pickle.loads(self.F_teams)
 		return None
 
-
-	# *** Delete redundant getters and setters
-	def set_group_games(self, group_stage_games):
-		self.group_stage_games = pickle.dumps(group_stage_games)
-
-	def get_group_games(self):
-		if self.group_stage_games:
+	def get_games(self, game_stage):
+		if game_stage == "group" and self.group_stage_games:
 			return pickle.loads(self.group_stage_games)
-		return None
-
-	def set_group_teams(self, group_stage_teams):
-		self.group_stage_teams = pickle.dumps(group_stage_teams)
-
-	def get_group_teams(self):
-		if self.group_stage_teams:
-			return pickle.loads(self.group_stage_teams)
-		return None
-
-	def get_R16_teams(self):
-		if self.R16_teams:
-			return pickle.loads(self.R16_teams)
-		return None
-
-	def set_R16_teams(self, teams):
-		self.R16_teams = pickle.dumps(teams)
-
-	def get_R16_games(self):
-		if self.R16_games:
+		elif game_stage == "R16" and self.R16_games:
 			return pickle.loads(self.R16_games)
+		elif game_stage == "QF" and self.QF_games:	
+			return pickle.loads(self.QF_games)
+		elif game_stage == "SF" and self.SF_games:
+			return pickle.loads(self.SF_games)
+		elif game_stage == "F" and self.F_game:
+			return pickle.loads(self.F_game)
 		return None
-
-	def set_R16_games(self, games):
-		self.R16_games = pickle.dumps(games)
 
 	def calculate_points(self):
 		posts = Post.query.all()
@@ -173,19 +160,19 @@ class Tournament(db.Model):
 		# Takes in post instance and calculates (and saves) its points 
 		# based on the game results saved in the tournament object
 		# for result in post.get_group_stage():
-		game_results = self.get_group_games()
-		guess_results = post.get_group_guess()
+		
+		game_results = self.get_games("group") # *** To Update
+		guess_results = post.get_group_guess() # *** To Update
 		points = 0
 
 		if game_results and guess_results:
 			for game_label in game_results:
 				
 				if game_results[game_label]["played"]:
-					# if exact score => 3 points
 					
+					# if exact score => 3 points
 					if game_results[game_label]["result"] == guess_results[game_label]["result"]:
 						points += 3
-						# guess_results[game_label]["points"] = 3
 						post.set_game_points("group", game_label, 3)
 						continue
 
@@ -194,29 +181,32 @@ class Tournament(db.Model):
 					guess_winner = Tournament.helper_winner(guess_results[game_label]["result"])
 
 					if game_winner == guess_winner:
-						# guess_results[game_label]["points"] = 1
 						post.set_game_points("group", game_label, 1)
 						points += 1
+					else:
+						post.set_game_points("group", game_label, 0)
+
 
 		post.points = points
 
-	def helper_group_stage():
-		games_dict = {}
-		groups = ("A", "B", "C", "D", "E", "F", "G", "H")
-		for group_letter in groups:
-			for home_team in range(1,5):
-				for away_team in range(1,5):
-					if home_team != away_team:
-						key = group_letter + str(home_team) + "H" + "vs" + group_letter + str(away_team) + "A"
-						games_dict[key] = None
-		return games_dict
 
-	def helper_games_labels(game_stage):
+	def helper_game_labels(game_stage):
 		# Returns a dict of games and their results.
 		# Keys are the teams that are facing each other, 
-		# ex: A1HvsA2A in group stage 
-		# ex2: R16_A1Hvs
+		# ex: {'A1HvsA2A': {'result':None, 'played':None},... } in group stage 
+
 		games_dict = {}
+		groups = Tournament.helper_groups(game_stage)
+
+		for group in groups:
+			for home_team in groups[group]:
+				for away_team in groups[group]:
+					if home_team != away_team:
+						key = home_team + "H" + "vs" + away_team + "A"
+						games_dict[key] = {'result': None, 'played': None}
+						if game_stage == "F":
+							return games_dict
+		return games_dict
 
 
 
@@ -262,6 +252,20 @@ class Tournament(db.Model):
 			return "away"
 		else:
 			return "draw"
+
+	def helper_parse_game_label(game_label):
+		# Input: Game label in the form A1HvsA2A or R16_A1HvsR16_A2A
+		# Output: Dict: {'home_team': 'A1', 'away_team':'A2'}
+
+		vs_index = None
+		i = 0
+		for char in game_label:
+			if char == 'v':
+				vs_index = i
+			i+=1
+		home_team = game_label[0:vs_index-1]
+		away_team = game_label[vs_index+2:-1]
+		return {"home_team": home_team, "away_team": away_team}
 
 	
 @login.user_loader
