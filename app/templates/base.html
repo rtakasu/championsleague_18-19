@@ -10,8 +10,7 @@
        <div>
             Champions League:
             <a href="{{ url_for('index') }}">Home</a>
-            <!-- <a href="{{ url_for('submit_bracket') }}">Submit Bracket(Protected)</a> -->
-            <a href="{{ url_for('submit_group_stage') }}">Submit Group Stage</a>
+            <a href="{{ url_for('submit_scores', game_stage='group') }}">Submit Scores</a>
             <a href="{{ url_for('profile') }}">Profile</a>
             <a href="{{ url_for('admin_submit_scores', game_stage='group') }}">Admin (Protected)</a>
             {% if current_user.is_anonymous %}

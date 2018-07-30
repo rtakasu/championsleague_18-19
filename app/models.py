@@ -35,49 +35,36 @@ class Post(db.Model):
 	def __repr__(self):
 		return '<Post {}>'.format(self.get_bracket())
 
-	# User pickle dumps to save serialized dict into bracket column
-	# TO DELETE
-	def set_bracket(self, bracket_dict):
-		self.bracket = pickle.dumps(bracket_dict)
+	def set_guess(self, game_stage, guess):
+		if game_stage == "group":
+			self.group_stage_guess = pickle.dumps(guess)
+		elif game_stage == "R16":
+			self.R16_guess = pickle.dumps(guess)
+		elif game_stage == "QF":	
+			self.QF_guess = pickle.dumps(guess)
+		elif game_stage == "SF":
+			self.SF_guess = pickle.dumps(guess)
+		elif game_stage == "F":
+			self.F_guess = pickle.dumps(guess)
 
-	# Unpickle and return bracket dict
-	# TO DELETE
-	def get_bracket(self):
-		if self.bracket:
-			return pickle.loads(self.bracket)
-		return None
-
-	def set_group_guess(self, group_stage_guess):
-		self.group_stage_guess = pickle.dumps(group_stage_guess)
-
-	def get_group_guess(self):
-		if self.group_stage_guess:
+	def get_guess(self, game_stage):
+		if game_stage == "group" and self.group_stage_guess:
 			return pickle.loads(self.group_stage_guess)
+		elif game_stage == "R16" and self.R16_guess:
+			return pickle.loads(self.R16_guess)
+		elif game_stage == "QF" and self.QF_guess:	
+			return pickle.loads(self.QF_guess)
+		elif game_stage == "SF" and self.SF_guess:
+			return pickle.loads(self.SF_guess)
+		elif game_stage == "F" and self.F_guess:
+			return pickle.loads(self.F_guess)
 		return None
+
 
 	def set_game_points(self, game_stage, game, points):
-		if game_stage == "group":
-			current_guess = self.get_group_guess()
-			current_guess[game]["points"] = points
-			self.set_group_guess(current_guess)
-		elif game_stage == "R16":
-			current_guess = self.get_R16_guess()
-			current_guess[game]["points"] = points
-			self.set_R16_guess(current_guess)
-		elif game_stage == "QF":
-			current_guess = self.get_QF_guess()
-			current_guess[game]["points"] = points
-			self.set_QF_guess(current_guess)
-		elif game_stage == "SF":
-			current_guess = self.get_SF_guess()
-			current_guess[game]["points"] = points
-			self.set_SF_guess(current_guess)
-		elif game_stage == "F":
-			current_guess = self.get_F_guess()
-			current_guess[game]["points"] = points
-			self.set_F_guess(current_guess)
-		else:
-			return None
+		current_guess = self.get_guess(game_stage)
+		current_guess[game]["points"] = points
+		self.set_guess(game_stage, current_guess)
 		
 	def make_valid(self):
 		posts = Post.query.filter(id!=self.id).all()
@@ -88,8 +75,6 @@ class Post(db.Model):
 class Tournament(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 
-	# X_games contains a dict with the info about each real-world game
-	# X_teams contains a dict with the teams in that round and their corresponding key
 	group_stage_games = db.Column(db.PickleType)
 	group_stage_teams = db.Column(db.PickleType)
 	R16_games = db.Column(db.PickleType)
@@ -162,7 +147,7 @@ class Tournament(db.Model):
 		# for result in post.get_group_stage():
 		
 		game_results = self.get_games("group") # *** To Update
-		guess_results = post.get_group_guess() # *** To Update
+		guess_results = post.get_guess("group") # *** To Update
 		points = 0
 
 		if game_results and guess_results:

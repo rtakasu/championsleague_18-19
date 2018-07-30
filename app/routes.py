@@ -1,6 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, BracketForm, GroupStageForm
+from app.forms import LoginForm, RegistrationForm, BracketForm
+from app.forms import GroupStageForm, R16StageForm, QFStageForm, SFStageForm, FStageForm
 from app.forms import GroupTeamForm, R16TeamForm, QFTeamForm, SFTeamForm, FTeamForm 
 from app.forms import AdminGroupStageForm, AdminR16StageForm, AdminQFStageForm, AdminSFStageForm, AdminFStageForm
 from flask_login import current_user, login_user, logout_user, login_required
@@ -14,40 +15,24 @@ def index():
 	posts=Post.query.order_by(desc('timestamp')).all()
 	return render_template('index.html', posts=posts)
 
-@app.route('/submit_bracket', methods=['GET', 'POST'])
+@app.route('/submit_scores/<string:game_stage>', defaults={'post_id': None}, methods=['GET', 'POST'])
+@app.route('/submit_scores/<string:game_stage>/<string:post_id>', methods=['GET', 'POST'])
 @login_required
-def submit_bracket():
-	form = BracketForm()
+def submit_scores(game_stage, post_id):
+	game_labels = Tournament.helper_game_labels(game_stage)
 	
-	# Retrieve CL tournament
-	tournaments = Tournament.query.all()
-	if len(tournaments) != 0:
-		cl = tournaments[0]
-	else: 
-		cl = Tournament()
-		db.session.add(cl)
-	cl.calculate_points()
-	db.session.commit()
-
-	if form.validate_on_submit():
-		post = Post(user_id=current_user.id, points=0)
-		post.set_bracket({'winner': form.winner.data})
-		post.make_valid()
-		cl.calculate_points_specific(post)
-		db.session.add(post)
-		db.session.commit()
-		flash('Congratulations you submitted a bracket')
-		app.logger.info('Congratulations you submitted a bracket')
-		return redirect(url_for('submit_bracket'))
-	return render_template('submit_bracket.html', title='Submit Bracket', form=form)
-
-@app.route('/submit_group_stage', methods=['GET', 'POST'])
-@login_required
-def submit_group_stage():
-	group_games_labels = Tournament.helper_group_stage()
-	form = GroupStageForm()
+	if game_stage == "group":
+		form = GroupStageForm()
+	elif game_stage == "R16":
+		form = R16StageForm()
+	elif game_stage == "QF":
+		form = QFStageForm()
+	elif game_stage == "SF":
+		form = SFStageForm()
+	elif game_stage == "F":
+		form = FStageForm()
 	
-	labels_and_form_items = zip(group_games_labels, form.games)
+	labels_and_form_items = zip(game_labels, form.games)
 
 	# Retrieve CL tournament
 	tournaments = Tournament.query.all()
@@ -61,16 +46,18 @@ def submit_group_stage():
 
 
 	games_info = {}
-	teams_dict = cl.get_teams(game_stage) #*** To Update
+	teams_dict = cl.get_teams(game_stage) 
 	if teams_dict:	
-		for game_label in group_games_labels:
-			home_team_label = game_label[0:2]
-			away_team_label = game_label[5:7]
-			games_info[game_label] = {"home_team": teams_dict[home_team_label], "away_team": teams_dict[away_team_label]}
+		for game_label in game_labels:
+			temp = Tournament.helper_parse_game_label(game_label)
+			games_info[game_label] = {"home_team": teams_dict[temp["home_team"]], "away_team": teams_dict[temp["away_team"]]}
 
 
 	if form.validate_on_submit():
-		post = Post(user_id=current_user.id, points=0)
+		if post_id:
+			post = Post.query.filter_by(id=post_id).all()[0]
+		else:
+			post = Post(user_id=current_user.id, points=0)
 		games_guess_dict = {}
 		for game_guess in labels_and_form_items:
 			games_guess_dict[game_guess[0]] = str(game_guess[1].data["home_result"]) + "vs" + str(game_guess[1].data["away_result"])
@@ -80,16 +67,16 @@ def submit_group_stage():
 					}
 
 		print(games_guess_dict)
-		post.set_group_guess(games_guess_dict)
+		post.set_guess(game_stage, games_guess_dict)
 		post.make_valid()
 		cl.calculate_points_specific(post)
 		db.session.add(post)
 		db.session.commit()
 		flash('Congratulations you submitted a bracket')
 		app.logger.info('Congratulations you submitted a bracket')
-		return redirect(url_for('submit_group_stage'))
+		return redirect(url_for('submit_scores', game_stage=game_stage, post_id=post.id))
 	
-	return render_template('submit_group_stage.html', title='Submit Group Stage', form=form, labels_and_form_items=labels_and_form_items, games_info=games_info)
+	return render_template('submit_scores.html', title='Submit Group Stage', form=form, labels_and_form_items=labels_and_form_items, games_info=games_info)
 
 
 @app.route('/profile')

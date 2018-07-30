@@ -13,7 +13,23 @@ class GameEntryForm(FlaskForm):
 
 class GroupStageForm(FlaskForm):
 	games = FieldList(FormField(GameEntryForm), min_entries=96)
-	submit = SubmitField('Submit Group Stage')
+	submit = SubmitField('Submit Group Stage Scores')
+
+class R16StageForm(FlaskForm):
+	games = FieldList(FormField(GameEntryForm), min_entries=16)
+	submit = SubmitField('Submit R16 Scores')
+
+class QFStageForm(FlaskForm):
+	games = FieldList(FormField(GameEntryForm), min_entries=8)
+	submit = SubmitField('Submit QF Scores')
+
+class SFStageForm(FlaskForm):
+	games = FieldList(FormField(GameEntryForm), min_entries=4)
+	submit = SubmitField('Submit SF Scores')
+
+class FStageForm(FlaskForm):
+	games = FieldList(FormField(GameEntryForm), min_entries=1)
+	submit = SubmitField('Submit F Scores')
 
 class AdminGameEntryForm(FlaskForm):
 	home_result = IntegerField('Home', validators=[Optional()])
