@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Post by: {{ post.user_id }} at {{ post.timestamp }}, valid: {{ post.valid }}, points:  {{ post.points }}</h1>
+    <h2>Group Stage:</h2>
+    <b>{{ post.get_guess("group") }}</b>
+    <h2>R16 Stage:</h2>
+    <b>{{ post.get_guess("R16") }}</b>
+    <h2>QF Stage:</h2>
+    <b>{{ post.get_guess("QF") }}</b>
+    <h2>SF Stage:</h2>
+    <b>{{ post.get_guess("SF") }}</b>
+    <h2>F Stage:</h2>
+    <b>{{ post.get_guess("F") }}</b>
+{% endblock %}

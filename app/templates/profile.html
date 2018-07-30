@@ -5,6 +5,6 @@
     <img src="/static/img/cr_messi_ney.jpg"  height="300" alt="">
     <h2>Bracket Submissions:</h2>
     {% for post in posts %}
-    <div><p>{{ post.timestamp }}: <b>{{ post.get_guess("group") }}</b> <b>, valid: {{ post.valid }}</b> <b>, points: {{ post.points }}</b></p></div>
+    <div><p>{{ post.timestamp }}: <a href="{{ url_for('post', post_id=post.id) }}">({{ post.points }} points) </a>
     {% endfor %}
 {% endblock %}

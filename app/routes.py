@@ -180,6 +180,11 @@ def admin_submit_teams(game_stage):
 	posts = Post.query.order_by(desc('points')).all()
 	return render_template('admin_submit_teams.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items)
 
+@app.route('/post/<string:post_id>')
+def post(post_id):
+	post=Post.query.filter_by(id=post_id).all()[0]
+	return render_template('post.html', post=post)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
 	if current_user.is_authenticated:
