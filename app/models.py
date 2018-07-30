@@ -146,30 +146,34 @@ class Tournament(db.Model):
 		# based on the game results saved in the tournament object
 		# for result in post.get_group_stage():
 		
-		game_results = self.get_games("group") # *** To Update
-		guess_results = post.get_guess("group") # *** To Update
 		points = 0
 
-		if game_results and guess_results:
-			for game_label in game_results:
-				
-				if game_results[game_label]["played"]:
+		game_stages = ["group", "R16", "QF", "SF", "F"]
+
+		for game_stage in game_stages:
+			game_results = self.get_games(game_stage) 
+			guess_results = post.get_guess(game_stage) 
+
+			if game_results and guess_results:
+				for game_label in game_results:
 					
-					# if exact score => 3 points
-					if game_results[game_label]["result"] == guess_results[game_label]["result"]:
-						points += 3
-						post.set_game_points("group", game_label, 3)
-						continue
+					if game_results[game_label]["played"]:
+						
+						# if exact score => 3 points
+						if game_results[game_label]["result"] == guess_results[game_label]["result"]:
+							points += 3
+							post.set_game_points(game_stage, game_label, 3)
+							continue
 
-					# if correct result but wrong score => 1 point
-					game_winner = Tournament.helper_winner(game_results[game_label]["result"])
-					guess_winner = Tournament.helper_winner(guess_results[game_label]["result"])
+						# if correct result but wrong score => 1 point
+						game_winner = Tournament.helper_winner(game_results[game_label]["result"])
+						guess_winner = Tournament.helper_winner(guess_results[game_label]["result"])
 
-					if game_winner == guess_winner:
-						post.set_game_points("group", game_label, 1)
-						points += 1
-					else:
-						post.set_game_points("group", game_label, 0)
+						if game_winner == guess_winner:
+							post.set_game_points(game_stage, game_label, 1)
+							points += 1
+						else:
+							post.set_game_points(game_stage, game_label, 0)
 
 
 		post.points = points

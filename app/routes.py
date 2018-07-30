@@ -65,8 +65,6 @@ def submit_scores(game_stage, post_id):
 					"result": str(game_guess[1].data["home_result"]) + "vs" + str(game_guess[1].data["away_result"]),
 					"points": 0
 					}
-
-		print(games_guess_dict)
 		post.set_guess(game_stage, games_guess_dict)
 		post.make_valid()
 		cl.calculate_points_specific(post)
