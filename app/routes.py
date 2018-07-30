@@ -59,7 +59,7 @@ def submit_group_stage():
 
 
 	games_info = {}
-	teams_dict = cl.get_group_teams()
+	teams_dict = cl.get_group_teams() #*** To Update
 	if teams_dict:	
 		for game_label in group_games_labels:
 			home_team_label = game_label[0:2]
@@ -96,10 +96,13 @@ def profile():
 	posts=Post.query.filter_by(user_id=current_user.id).order_by(desc('timestamp')).all()
 	return render_template('profile.html', posts=posts)
 
-@app.route('/admin', methods=['GET', 'POST'])
+@app.route('/admin_submit_scores/<string:game_stage>', methods=['GET', 'POST'])
 @login_required
-def admin():
+def admin_submit_scores(game_stage):
 	group_games_labels = Tournament.helper_group_stage()
+	
+
+
 	form = AdminGroupStageForm()
 
 	labels_and_form_items = zip(group_games_labels, form.games)
@@ -115,7 +118,8 @@ def admin():
 	db.session.commit()
 
 	games_info = {}
-	teams_dict = cl.get_group_teams()
+	teams_dict = cl.get_teams(game_stage)
+
 	if teams_dict:	
 		for game_label in group_games_labels:
 			home_team_label = game_label[0:2]
@@ -139,13 +143,18 @@ def admin():
 	posts = Post.query.order_by(desc('points')).all()
 	return render_template('admin.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items, games_info=games_info)
 
-@app.route('/admin_submit_teams', methods=['GET', 'POST'])
+
+@app.route('/admin_submit_teams/<string:game_stage>', methods=['GET', 'POST'])
 @login_required
-def admin_submit_teams():
-	group_team_labels = Tournament.helper_teams()
+def admin_submit_teams(game_stage):
+	groups = Tournament.helper_groups(game_stage)
+	team_labels_list = []
+	for group in groups:
+		team_labels_list += groups[group]
+
 	form = AdminTeamForm()
 
-	labels_and_form_items = zip(group_team_labels, form.teams)
+	labels_and_form_items = zip(team_labels_list, form.teams)
 
 	# Retrieve CL tournament
 	tournaments = Tournament.query.all()
@@ -161,11 +170,11 @@ def admin_submit_teams():
 		teams_dict = {}
 		for team_assignment in labels_and_form_items:
 			teams_dict[team_assignment[0]] = team_assignment[1].data["team"]
-		cl.set_group_teams(teams_dict)
+		cl.set_teams(game_stage, teams_dict)
 		print(teams_dict)
 		db.session.commit()
 		app.logger.info('Updated Tournament')
-		return redirect(url_for('admin_submit_teams'))
+		return redirect(url_for('admin_submit_teams', game_stage=game_stage))
 	posts = Post.query.order_by(desc('points')).all()
 	return render_template('admin_submit_teams.html', title='Admin', form=form, tournament=cl, labels_and_form_items=labels_and_form_items)
 

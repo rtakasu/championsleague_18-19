@@ -105,6 +105,33 @@ class Tournament(db.Model):
 	def __init__(self):
 		self.group_stage_games = pickle.dumps(Tournament.helper_group_stage())
 
+	def set_teams(self, game_stage, teams):
+		if game_stage == "group":
+			self.group_stage_teams = pickle.dumps(teams)
+		elif game_stage == "R16":
+			self.R16_teams = pickle.dumps(teams)
+		elif game_stage == "QF":	
+			self.QF_teams = pickle.dumps(teams)
+		elif game_stage == "SF":
+			self.SF_teams = pickle.dumps(teams)
+		elif game_stage == "F":
+			self.F_teams = pickle.dumps(teams)
+
+	def get_teams(self, game_stage):
+		if game_stage == "group" and self.group_stage_teams:
+			return pickle.loads(self.group_stage_teams)
+		elif game_stage == "R16" and self.R16_teams:
+			return pickle.loads(self.R16_teams)
+		elif game_stage == "QF" and self.QF_teams:	
+			return pickle.loads(self.QF_teams)
+		elif game_stage == "SF" and self.SF_teams:
+			return pickle.loads(self.SF_teams)
+		elif game_stage == "F" and self.F_teams:
+			return pickle.loads(self.F_teams)
+		return None
+
+
+	# *** Delete redundant getters and setters
 	def set_group_games(self, group_stage_games):
 		self.group_stage_games = pickle.dumps(group_stage_games)
 
@@ -184,13 +211,42 @@ class Tournament(db.Model):
 						games_dict[key] = None
 		return games_dict
 
-	def helper_teams():
-		teams_list = []
-		groups = ("A", "B", "C", "D", "E", "F", "G", "H")
-		for group_letter in groups:
-			for i in range(1,5):
-				teams_list.append(group_letter + str(i))
-		return teams_list
+	def helper_games_labels(game_stage):
+		# Returns a dict of games and their results.
+		# Keys are the teams that are facing each other, 
+		# ex: A1HvsA2A in group stage 
+		# ex2: R16_A1Hvs
+		games_dict = {}
+
+
+
+	def helper_groups(game_stage):
+		# Returns a dict of groups with labels of teams in each group
+		# Group stage: {'A': ['A1','A2',...], 'B': ['B1','B2',...],...}
+		# Knockout stage: Treat each knockout stage as a group with 2 teams
+
+		groups = {}
+		teams_per_group = 2
+		groups_list = []
+		if game_stage == "group":
+			groups_list = ["A", "B", "C", "D", "E", "F", "G", "H"]
+			teams_per_group = 4
+		elif game_stage == "R16":
+			groups_list = ["R16_A", "R16_B", "R16_C", "R16_D", "R16_E", "R16_F", "R16_G", "R16_H"]
+		elif game_stage == "QF":
+			groups_list = ["QF_A", "QF_B", "QF_C", "QF_D"]
+		elif game_stage == "SF":
+			groups_list = ["SF_A", "SF_B"]
+		elif game_stage == "F":
+			groups_list = ["F"]
+
+		for group_letter in groups_list:
+				teams_list = []
+				for i in range(1,teams_per_group+1):
+					teams_list.append(group_letter + str(i))
+				groups[group_letter] = teams_list
+
+		return groups
 
 	def helper_winner(score):
 		# Returns whether home (won), away (won) or draw based on the input score string
